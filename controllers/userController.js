@@ -8,25 +8,24 @@ const register = async (req, res) => {
     let email = req.body.email;
     let name = req.body.name;
     let password = req.body.password;
-if(email=="" || name=="" || password=="")
-{
-  res.send({
-    success: false,
-    message: "All Fields Are required....",
-  });
-}
+    if (email == "" || name == "" || password == "") {
+      res.send({
+        success: false,
+        message: "All Fields Are required....",
+      });
+    }
     // chek for Exestance...
     const taken = await User.findOne({ email });
     if (taken) {
       //To not send password as a response
-      (taken.toJSON = function () {
+      taken.toJSON = function () {
         return { email, name };
-      }),
-        res.send({
-          success: false,
-          message: "Email Id is already in used...",
-          taken,
-        });
+      };
+      res.send({
+        success: false,
+        message: "Email Id is already in used...",
+        taken,
+      });
     }
     const userData = new User({
       name,

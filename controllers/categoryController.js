@@ -59,7 +59,7 @@ const showAllcategory = (req, res) => {
   const status = req.query.status;
 
   categoryModel
-    .find({ status }, { title: 1, _id: 0 })
+    .find({ status }, { title: 1, _id: 1 })
     .then((list) => {
       if (list.length === 0) {
         return res.send({ success: true, message: "No Category Found..." });

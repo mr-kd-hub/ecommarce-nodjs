@@ -1,11 +1,12 @@
 const productModel = require("../models/productModel");
 const categoryModel = require("../models/categoryModel");
-// const likeModel = require("../models/likeModel");
+const likeModel = require("../models/likeModel");
 //add products
 const addProduct = async (req, res) => {
   let title = req.body.title.toLowerCase();
   let category = req.body.category.toLowerCase();
   let price = req.body.price;
+  let createdby = req.currentUser.email;
   try {
     if (title === "" || category === "") {
       return res.send({
@@ -24,6 +25,7 @@ const addProduct = async (req, res) => {
       title,
       category,
       price,
+      createdby,
     });
     const product = await productData.save();
     return res.send({
@@ -45,8 +47,9 @@ const showProduct = async (req, res) => {
   try {
     const products = await productModel.find(
       {},
-      { _id: 0, title: 1, price: 1, category: 1 }
+      { _id: 1, title: 1, price: 1, category: 1 }
     );
+
     if (products.length === 0) {
       return res.send({
         success: true,
@@ -73,12 +76,20 @@ const modufyProduct = async (req, res) => {
   const _id = req.params.id;
   const title = req.body.title.toLowerCase();
   const price = req.body.price;
+  let createdby = req.currentUser.email;
   const category = req.body.category.toLowerCase();
   try {
     if (title === "" || price === "" || category === "") {
       return res.send({
         success: false,
         message: "All fields are required",
+      });
+    }
+    const validateUser = await productModel.find({ _id, createdby });
+    if (validateUser.length === 0) {
+      return res.send({
+        success: false,
+        message: "You cant Modify this product",
       });
     }
     //check for category
@@ -111,7 +122,15 @@ const modufyProduct = async (req, res) => {
 //remove products
 const removeProducts = async (req, res) => {
   const _id = req.params.id;
+  let createdby = req.currentUser.email;
   try {
+    const validateUser = await productModel.find({ _id, createdby });
+    if (validateUser.length === 0) {
+      return res.send({
+        success: false,
+        message: "You cant Remove this product",
+      });
+    }
     const deletedProduct = await productModel.findByIdAndDelete(_id);
     if (deletedProduct) {
       return res.send({
@@ -150,7 +169,7 @@ const getProductByCategory = async (req, res) => {
   }
   const product = await productModel.find(
     { category },
-    { _id: 0, title: 1, price: 1 }
+    { _id: 1, title: 1, price: 1 }
   );
   if (product.length === 0) {
     return res.send({
